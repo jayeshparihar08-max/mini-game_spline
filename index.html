@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cute 3D Bear-Man Forest Adventure • Coin Mission • Built with Spline</title>
+  <meta name="description" content="Collect all 10 golden coins across an interactive 3D forest with Barnaby the bear! Features smooth third-person camera, collision detection, live score tracking, victory celebration, and procedural sound effects in Spline." />
+  <link rel="stylesheet" href="./style.css" />
+  <!-- Spline Viewer Web Component CDN Fallback -->
+  <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.72/build/spline-viewer.js"></script>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🧸</div>
+      <div class="brand-info">
+        <h1>Kuma Bear-Man 3D</h1>
+        <p>Interactive Character & Forest Adventure in Spline</p>
+      </div>
+    </div>
+    <div class="header-badges">
+      <div class="badge-live">
+        <span class="pulse-dot"></span>
+        <span>Live WebGL / WebGPU</span>
+      </div>
+      <a href="https://my.spline.design/untitled-qG0kr5tH4j1KX4VJA5xi8Q46/" target="_blank" rel="noopener noreferrer" class="btn-spline-link">
+        <span>Open in Spline</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero 3D Section -->
+    <section class="hero-3d-section">
+      <!-- 3D Viewer Card -->
+      <div class="viewer-card" id="viewerCard">
+        <!-- Game Mission & Coins HUD -->
+        <div class="game-mission-hud" id="gameMissionHud">
+          <div class="hud-top-row">
+            <div class="mission-tag">
+              <span class="mission-icon">🎯</span>
+              <span class="mission-title">Mission: <strong>Collect 10 Coins</strong></span>
+            </div>
+            <div class="coins-counter-badge" id="coinsBadge">
+              <span class="coin-icon">🪙</span>
+              <span class="counter-text">Coins: <strong id="coinsCount">0</strong>/10</span>
+              <div class="progress-bar-container mini">
+                <div class="progress-bar-fill" id="progressBarFill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="spline-embed-container">
+          <spline-viewer 
+            id="bearSplineViewer" 
+            url="./scene.splinecode?v=17929364">
+          </spline-viewer>
+        </div>
+
+        <div class="keyboard-hint-badge">
+          <span>⌨️ Controls:</span>
+          <span class="key-cap">WASD</span>
+          <span>Walk •</span>
+          <span class="key-cap">Shift</span>
+          <span>Run •</span>
+          <span class="key-cap">Space</span>
+          <span>Jump</span>
+        </div>
+
+        <!-- Action Buttons (Jump & Run) -->
+        <div class="action-buttons-group">
+          <button class="action-btn btn-jump" id="btnActionJump" title="Jump (Spacebar)">
+            <span>🦘</span>
+            <span>Jump</span>
+          </button>
+          <button class="action-btn btn-run" id="btnActionRun" title="Toggle Sprint (Shift)">
+            <span>⚡</span>
+            <span>Run</span>
+          </button>
+        </div>
+
+        <!-- On-Screen D-Pad for Mouse and Touch Interaction -->
+        <div class="on-screen-dpad">
+          <button class="dpad-btn dpad-up" id="btnDpadUp" title="Walk Forward (W / ↑)">W</button>
+          <button class="dpad-btn dpad-left" id="btnDpadLeft" title="Turn Left (A / ←)">A</button>
+          <button class="dpad-btn dpad-down" id="btnDpadDown" title="Walk Backward (S / ↓)">S</button>
+          <button class="dpad-btn dpad-right" id="btnDpadRight" title="Turn Right (D / →)">D</button>
+        </div>
+
+        <div class="viewer-controls-bar">
+          <div class="cam-presets-strip">
+            <button class="cam-preset-btn active" id="btnCamFullBody" title="Elevated Full Body View of Bear">
+              <span>🐻 Full Body</span>
+            </button>
+            <button class="cam-preset-btn" id="btnCamElevated" title="High Angle View">
+              <span>📐 High Angle</span>
+            </button>
+            <button class="cam-preset-btn" id="btnCamWide" title="Wide View">
+              <span>🌲 Wide</span>
+            </button>
+          </div>
+          <div class="controls-divider"></div>
+          <button class="ctrl-btn" id="btnZoomOut" title="Zoom Out (View Full Body / Wider Scene)">
+            <span>🔍➖</span>
+            <span>Zoom -</span>
+          </button>
+          <button class="ctrl-btn" id="btnZoomIn" title="Zoom In (Closer Look)">
+            <span>🔍➕</span>
+            <span>Zoom +</span>
+          </button>
+          <button class="ctrl-btn" id="btnWave" title="Trigger cheer wave">
+            <span>👋</span>
+            <span>Wave</span>
+          </button>
+          <button class="ctrl-btn" id="btnBlink" title="Simulate cute eye blink">
+            <span>👀</span>
+            <span>Blink</span>
+          </button>
+          <button class="ctrl-btn" id="btnReset" title="Reset camera to elevated full body perspective">
+            <span>🔄</span>
+            <span>Reset View</span>
+          </button>
+        </div>
+
+        <!-- Victory Celebration Modal -->
+        <div class="victory-modal-overlay" id="victoryModal">
+          <div class="victory-card">
+            <div class="victory-confetti-anim">🎉 🌟 ✨ 🪙 ✨ 🌟 🎉</div>
+            <h3 class="victory-title">Amazing!</h3>
+            <p class="victory-message">You collected every coin!</p>
+            <div class="victory-stats">
+              <span class="stat-badge">🪙 10 / 10 Coins</span>
+              <span class="stat-badge">🌲 Forest Master</span>
+            </div>
+            <button class="btn-play-again" id="btnPlayAgain">
+              <span>🔄</span>
+              <span>Play Again</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Information Details -->
+      <div class="hero-details">
+        <div class="badge-tagline">3D Character & Forest World</div>
+        <h2 class="hero-title">Meet <span>Barnaby</span>,<br/>In the Enchanted Forest.</h2>
+        <p class="hero-description">
+          A cute, charming brown bear character standing upright on two legs like a human, wandering through a vibrant low-poly forest. 
+          Walk, sprint, and jump along a winding dirt path with a smooth chase camera, real-time tree & boulder collision detection, 
+          drifting cartoon clouds, and gently swaying pine canopies built with <strong>Spline 3D</strong>.
+        </p>
+
+        <!-- Feature Mini-Cards -->
+        <div class="feature-mini-cards">
+          <div class="mini-card">
+            <div class="mini-card-icon">🌲</div>
+            <h3>Low-Poly Forest</h3>
+            <p>Lush meadow, winding dirt path, 6 tiered pine trees, bushes, flowers, and distant rolling hills.</p>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-icon">🎥</div>
+            <h3>Smooth Chase Camera</h3>
+            <p>Dynamic isometric third-person camera that gently tracks Barnaby across the forest floor.</p>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-icon">🛡️</div>
+            <h3>Obstacle Collision</h3>
+            <p>Elastic circle-circle pushout resolution preventing walking through trees and decorative boulders.</p>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-icon">☁️</div>
+            <h3>Living Atmosphere</h3>
+            <p>Drifting puffy clouds across a soft blue sky, swaying pine canopies, and gentle sunlight shadows.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Educational Breakdown Section -->
+    <section class="tutorial-section">
+      <div class="section-header">
+        <h2>How It Was Built: Step-by-Step Guide</h2>
+        <p>A simple, beginner-friendly explanation of the 3D modeling, lighting, procedural animation, and web integration.</p>
+      </div>
+
+      <div class="tutorial-container">
+        <!-- Navigation Tabs -->
+        <div class="tutorial-tabs">
+          <button class="tab-btn active" data-tab="tab-modeling">
+            <span>🎨</span>
+            <span>1. 3D Modeling</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-materials">
+            <span>💡</span>
+            <span>2. Materials & Lighting</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-animation">
+            <span>🎬</span>
+            <span>3. Idle & Waving Animation</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-mouse">
+            <span>🖱️</span>
+            <span>4. Mouse Parallax</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-embed">
+            <span>🚀</span>
+            <span>5. Website Embedding</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-walking">
+            <span>🚶</span>
+            <span>6. Walking & Controls</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-jump-run">
+            <span>⚡</span>
+            <span>7. Jump & Run Mechanics</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-forest">
+            <span>🌲</span>
+            <span>8. 3D Forest World & Camera</span>
+          </button>
+          <button class="tab-btn" data-tab="tab-coins">
+            <span>🪙</span>
+            <span>9. Coins & Mission System</span>
+          </button>
+        </div>
+
+        <!-- Tab 1: 3D Modeling -->
+        <div class="tab-content active" id="tab-modeling">
+          <div class="step-grid">
+            <div class="step-info">
+              <h3>Creating the Bear Anatomy with Primitives</h3>
+              <p>In Spline, cute cartoon characters are built by combining simple 3D geometric primitives (spheres, rounded cubes, and cylinders) arranged into a logical body hierarchy.</p>
+              
+              <ul class="step-checklist">
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Round Chibi Head:</strong> A squashed sphere (148×136×134) gives the bear its warm, friendly cartoon silhouette.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Muzzle & Black Nose:</strong> A lighter cream sphere for the snout with a glossy black oval nose and subtle mouth line.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Expressive Eyes:</strong> Shiny black spheres with bright white pupil sparkle catchlights for an alive, charming look.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Standing Posture & Outfit:</strong> Two legs with denim blue pants cylinders, rounded feet with cute toe pads, and a cozy coral sweater with collar trim.</div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="step-code">
+              <div class="code-box">
+                <div class="code-box-header">
+                  <span class="code-title">Spline DSL • Head & Snout Creation</span>
+                  <button class="copy-btn" data-code="code-head">Copy</button>
+                </div>
+                <pre><code id="code-head"><span class="cmt">// Head sphere</span>
+<span class="fun">mesh</span>(<span class="str">'Sphere'</span>, { width: <span class="num">148</span>, height: <span class="num">136</span>, depth: <span class="num">134</span> });
+<span class="fun">color</span>(<span class="str">'#82532e'</span>); <span class="cmt">// Warm brown fur</span>
+<span class="fun">rename</span>(<span class="str">'Bear Head'</span>);
+
+<span class="cmt">// Cream Muzzle / Snout</span>
+<span class="fun">mesh</span>(<span class="str">'Sphere'</span>, { width: <span class="num">70</span>, height: <span class="num">50</span>, depth: <span class="num">46</span> });
+<span class="fun">position</span>({ x: <span class="num">0</span>, y: <span class="num">280</span>, z: <span class="num">58</span> });
+<span class="fun">color</span>(<span class="str">'#f5dfc6'</span>);
+
+<span class="cmt">// Glossy Black Nose</span>
+<span class="fun">mesh</span>(<span class="str">'Sphere'</span>, { width: <span class="num">24</span>, height: <span class="num">16</span>, depth: <span class="num">18</span> });
+<span class="fun">position</span>({ x: <span class="num">0</span>, y: <span class="num">292</span>, z: <span class="num">78</span> });
+<span class="fun">color</span>(<span class="str">'#1c1c1c'</span>);</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Materials & Lighting -->
+        <div class="tab-content" id="tab-materials">
+          <div class="step-grid">
+            <div class="step-info">
+              <h3>Soft Physical Shading & 3-Point Lighting</h3>
+              <p>Realistic yet stylized rendering requires balancing soft surface roughness with a gentle studio lighting rig that produces realistic, soft contact shadows.</p>
+              
+              <ul class="step-checklist">
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Physical Fur Shading:</strong> Roughness set to <code>0.75</code> prevents harsh plastic reflections while preserving soft surface depth.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Key Directional Light:</strong> Soft shadow filtering with <code>shadowRadius: 18</code> avoids sharp razor edges and grounds the character.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Fill & Rim Lights:</strong> A soft cool directional fill light from the left and a warm point rim light from behind for silhouette pop.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Pedestal & AO:</strong> A circular cylinder podium with Ambient Occlusion (AO) creates soft, natural contact darkening where the paws touch the ground.</div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="step-code">
+              <div class="interactive-spec-card">
+                <div class="spec-title">🎨 Curated Color Palette</div>
+                <table class="spec-table">
+                  <thead>
+                    <tr><th>Element</th><th>Color</th><th>Finish</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Bear Fur</td>
+                      <td><span class="color-chip" style="background:#82532e;"></span> #82532e</td>
+                      <td>Physical (Roughness: 0.75)</td>
+                    </tr>
+                    <tr>
+                      <td>Snout & Inners</td>
+                      <td><span class="color-chip" style="background:#f5dfc6;"></span> #f5dfc6</td>
+                      <td>Soft Matte Cream</td>
+                    </tr>
+                    <tr>
+                      <td>Cozy Sweater</td>
+                      <td><span class="color-chip" style="background:#e76f51;"></span> #e76f51</td>
+                      <td>Warm Terracotta / Coral</td>
+                    </tr>
+                    <tr>
+                      <td>Denim Pants</td>
+                      <td><span class="color-chip" style="background:#2d5377;"></span> #2d5377</td>
+                      <td>Navy Blue Cloth</td>
+                    </tr>
+                    <tr>
+                      <td>Eyes & Nose</td>
+                      <td><span class="color-chip" style="background:#181818;"></span> #181818</td>
+                      <td>Glossy Ceramic (Roughness: 0.15)</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Idle & Waving Animation -->
+        <div class="tab-content" id="tab-animation">
+          <div class="step-grid">
+            <div class="step-info">
+              <h3>Procedural Code-Driven Animation</h3>
+              <p>Instead of clunky keyframed tweens, the bear uses continuous mathematical sinusoidal functions in a <code>requestAnimationFrame</code> loop. Every motion is computed directly from elapsed time: <code>pose = f(t)</code>.</p>
+              
+              <ul class="step-checklist">
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Gentle Breathing Bob:</strong> <code>y = Math.sin(t * 2.2) * 2.5</code> creates a natural inhalation and exhalation rhythm.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Waving Hand:</strong> The right arm pivot rotates along the Z and Y axes with <code>Math.sin(t * 4.5) * 16°</code> around the shoulder origin.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Periodic Eye Blinking:</strong> Every 3.6 seconds, the eye meshes squash vertically down to <code>0.05</code> scale for 160ms and spring back up smoothly.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Head Nod & Tilt:</strong> Slight organic phase-offset head tilting gives the bear an inquisitive, friendly personality.</div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="step-code">
+              <div class="code-box">
+                <div class="code-box-header">
+                  <span class="code-title">JavaScript • Procedural Motion Loop</span>
+                  <button class="copy-btn" data-code="code-anim">Copy</button>
+                </div>
+                <pre><code id="code-anim"><span class="kwd">function</span> <span class="fun">tick</span>(now) {
+  <span class="kwd">const</span> t = (now - t0) / <span class="num">1000</span>;
+
+  <span class="cmt">// 1. Gentle breathing bob</span>
+  <span class="kwd">const</span> bob = Math.<span class="fun">sin</span>(t * <span class="num">2.2</span>) * <span class="num">2.5</span>;
+  spline.<span class="fun">updateObject</span>(bearId, { position: { y: bob } });
+
+  <span class="cmt">// 2. Waving right arm</span>
+  <span class="kwd">const</span> wave = Math.<span class="fun">sin</span>(t * <span class="num">4.5</span>) * <span class="num">16</span>;
+  spline.<span class="fun">updateObject</span>(armRightId, { rotation: { z: wave } });
+
+  <span class="cmt">// 3. Cute Eye Blink (every 3.6s for 160ms)</span>
+  <span class="kwd">const</span> blinkT = t % <span class="num">3.6</span>;
+  <span class="kwd">let</span> scaleY = <span class="num">1.0</span>;
+  <span class="kwd">if</span> (blinkT &lt; <span class="num">0.16</span>) {
+    scaleY = Math.<span class="fun">max</span>(<span class="num">0.05</span>, Math.<span class="fun">abs</span>((blinkT / <span class="num">0.16</span>) - <span class="num">0.5</span>) * <span class="num">2</span>);
+  }
+  spline.<span class="fun">updateObject</span>(eyeLeftId, { scale: { y: scaleY } });
+  spline.<span class="fun">updateObject</span>(eyeRightId, { scale: { y: scaleY } });
+
+  <span class="fun">requestAnimationFrame</span>(tick);
+}</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Mouse Parallax -->
+        <div class="tab-content" id="tab-mouse">
+          <div class="step-grid">
+            <div class="step-info">
+              <h3>Smooth Mouse Tracking & Damping</h3>
+              <p>When the user moves the mouse across the screen, the bear naturally turns its body and head toward the cursor without jerky snapping.</p>
+              
+              <ul class="step-checklist">
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Normalized Coordinates:</strong> Screen cursor positions are converted to a <code>-1.0 to +1.0</code> range relative to viewport center.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Linear Interpolation (Lerp):</strong> The current rotation smoothly glides toward the target rotation with a damping factor of <code>0.06</code>.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Safe Clamped Angles:</strong> Horizontal rotation is mapped to ±18° and vertical pitch to ±10° so the character remains grounded.</div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="step-code">
+              <div class="code-box">
+                <div class="code-box-header">
+                  <span class="code-title">JavaScript • Springy Mouse Parallax</span>
+                  <button class="copy-btn" data-code="code-mouse">Copy</button>
+                </div>
+                <pre><code id="code-mouse"><span class="cmt">// Track normalized cursor position</span>
+window.<span class="fun">addEventListener</span>(<span class="str">'pointermove'</span>, (e) => {
+  mouseTargetX = ((e.clientX / window.innerWidth) - <span class="num">0.5</span>) * <span class="num">2</span>;
+  mouseTargetY = ((e.clientY / window.innerHeight) - <span class="num">0.5</span>) * <span class="num">2</span>;
+});
+
+<span class="cmt">// Inside tick loop: spring lerp</span>
+curX += (mouseTargetX - curX) * <span class="num">0.06</span>;
+curY += (mouseTargetY - curY) * <span class="num">0.06</span>;
+
+<span class="cmt">// Rotate character body</span>
+spline.<span class="fun">updateObject</span>(bearId, {
+  rotation: { y: curX * <span class="num">18</span>, x: -curY * <span class="num">10</span> }
+});</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Website Embedding -->
+        <div class="tab-content" id="tab-embed">
+          <div class="step-grid">
+            <div class="step-info">
+              <h3>Embedding in Any Website</h3>
+              <p>Embedding a published Spline 3D scene into HTML requires only two simple steps: loading the official viewer script and adding the custom element tag.</p>
+              
+              <ul class="step-checklist">
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Zero Heavy Boilerplate:</strong> No complex WebGL canvas setup or shader compilation needed.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Responsive by Default:</strong> Set <code>width: 100%</code> and <code>height: 100%</code> to fit any responsive card or hero section.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Hardware Accelerated:</strong> Runs smoothly on WebGL 2 and WebGPU across modern desktop and mobile browsers.</div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="step-code">
+              <div class="code-box">
+                <div class="code-box-header">
+                  <span class="code-title">HTML • Spline Viewer Embed Snippet</span>
+                  <button class="copy-btn" data-code="code-embed">Copy</button>
+                </div>
+                <pre><code id="code-embed"><span class="cmt">&lt;!-- 1. Include the Spline Viewer Web Component --&gt;</span>
+<span class="tag">&lt;script</span> <span class="kwd">type</span>=<span class="str">"module"</span> <span class="kwd">src</span>=<span class="str">"https://unpkg.com/@splinetool/viewer/build/spline-viewer.js"</span><span class="tag">&gt;&lt;/script&gt;</span>
+
+<span class="cmt">&lt;!-- 2. Place the &lt;spline-viewer&gt; tag with your published scene URL --&gt;</span>
+<span class="tag">&lt;spline-viewer</span> 
+  <span class="kwd">url</span>=<span class="str">"https://prod.spline.design/wPZPLjqoPeVp-nLK/scene.splinecode"</span><span class="tag">&gt;</span>
+<span class="tag">&lt;/spline-viewer&gt;</span></code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 6: Walking & Keyboard Controls -->
+        <div class="tab-content" id="tab-walking">
+          <div class="step-grid">
+            <div class="step-info">
+              <h3>Natural Walking Cycle & Keyboard Integration</h3>
+              <p>The walking system coordinates alternating bipedal leg swings, opposing arm swings, up-and-down body bounce, and real-time 3D translation along the bear's orientation vector.</p>
+              
+              <ul class="step-checklist">
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Alternating Leg Strides:</strong> <code>Leg Left Pivot</code> and <code>Leg Right Pivot</code> rotate in exact opposition: <code>pitch = ±sin(walkPhase) * 26°</code>.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Arm Stride & Wave Blending:</strong> While walking, arms swing in counter-balance to the legs. As the bear stops, the right arm smoothly returns to its cheerful wave.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Gentle Walking Bounce:</strong> A natural two-bounce-per-stride vertical movement: <code>y = |sin(walkPhase)| * 5.5px</code> plus subtle lateral weight shift.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>3D Heading Translation:</strong> Pressing <span class="key-cap">W</span> or <span class="key-cap">S</span> translates along <code>sin(facingAngle)</code> and <code>cos(facingAngle)</code>; <span class="key-cap">A</span> and <span class="key-cap">D</span> turn left and right smoothly at 120°/s.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Smooth Transitions:</strong> A <code>walkBlend</code> factor (0.0 to 1.0) with exponential damping ensures no sudden snaps between walking and resting.</div>
+                </li>
+              </ul>
+
+              <!-- Spline vs JS Comparison Callout -->
+              <div class="comparison-callout">
+                <div class="callout-card spline-side">
+                  <h4>🎨 Handled by Spline 3D</h4>
+                  <p>• 3D Character models, geometry, textures & fur colors.<br/>• Shoulder & Hip Pivot hierarchies (<code>Empty</code> origins).<br/>• 3-point soft lighting, pedestal floor & realistic shadows.<br/>• High-performance WebGL / WebGPU scene rendering.</p>
+                </div>
+                <div class="callout-card js-side">
+                  <h4>⚡ Handled by JavaScript</h4>
+                  <p>• Keyboard event listeners (<span class="key-cap">W</span><span class="key-cap">A</span><span class="key-cap">S</span><span class="key-cap">D</span> & Arrows).<br/>• Trigonometric walk cycle (<code>Math.sin</code> strides, bounce & sway).<br/>• Translation along facing vector & platform clamping.<br/>• Smooth <code>walkBlend</code> interpolation and D-pad UI sync.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-code">
+              <div class="code-box">
+                <div class="code-box-header">
+                  <span class="code-title">JavaScript • Walking & Leg Swing Logic</span>
+                  <button class="copy-btn" data-code="code-walk">Copy</button>
+                </div>
+                <pre><code id="code-walk"><span class="cmt">// 1. Smoothly blend between Idle (0) and Walking (1)</span>
+<span class="kwd">const</span> targetBlend = isMoving ? <span class="num">1.0</span> : <span class="num">0.0</span>;
+walkBlend += (targetBlend - walkBlend) * <span class="num">0.12</span>;
+
+<span class="cmt">// 2. Turn Left / Right (A / D or Arrow Left / Right)</span>
+<span class="kwd">if</span> (keys.left)  bearFacingAngle += <span class="num">120</span> * dt;
+<span class="kwd">if</span> (keys.right) bearFacingAngle -= <span class="num">120</span> * dt;
+
+<span class="cmt">// 3. Move Forward / Backward (W / S or Arrow Up / Down)</span>
+<span class="kwd">if</span> (isTranslating) {
+  <span class="kwd">const</span> rad = (bearFacingAngle * Math.PI) / <span class="num">180</span>;
+  <span class="kwd">const</span> dir = keys.forward ? <span class="num">1</span> : -<span class="num">0.65</span>;
+  bearPosX += Math.<span class="fun">sin</span>(rad) * <span class="num">140</span> * dir * dt;
+  bearPosZ += Math.<span class="fun">cos</span>(rad) * <span class="num">140</span> * dir * dt;
+}
+
+<span class="cmt">// 4. Alternating Leg Strides (Hip Pivots)</span>
+<span class="kwd">const</span> legSwing = Math.<span class="fun">sin</span>(walkPhase) * <span class="num">26</span> * walkBlend;
+spline.<span class="fun">updateObject</span>(legLeftId,  { rotation: { x:  legSwing } });
+spline.<span class="fun">updateObject</span>(legRightId, { rotation: { x: -legSwing } });
+
+<span class="cmt">// 5. Vertical Walking Bounce</span>
+<span class="kwd">const</span> bounce = Math.<span class="fun">abs</span>(Math.<span class="fun">sin</span>(walkPhase)) * <span class="num">5.5</span>;
+<span class="kwd">const</span> y = baseY + (idleBreathe * (<span class="num">1</span> - walkBlend)) + (bounce * walkBlend);
+spline.<span class="fun">updateObject</span>(bearId, { position: { x: bearPosX, y: y, z: bearPosZ } });</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 7: Jump & Run Mechanics -->
+        <div class="tab-content" id="tab-jump-run">
+          <div class="step-grid">
+            <div class="step-info">
+              <h3>Physics-Driven Jumping & Sprint Kinematics</h3>
+              <p>The upgraded motion engine seamlessly coordinates vertical Newtonian projectile physics, volume-preserving landing squashes, and high-energy athletic sprinting.</p>
+              
+              <ul class="step-checklist">
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Newtonian Jump Physics:</strong> Pressing <span class="key-cap">Space</span> applies an initial impulse (<code>v₀ = 320 units/s</code>) opposed by realistic gravity (<code>g = 720 units/s²</code>).</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Ground Lock & Safety:</strong> Multiple jumps while airborne are strictly prevented by an <code>isGrounded</code> boolean gate. The bear cannot sink below ground height.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Realistic Landing Squash:</strong> On ground impact, the body momentarily compresses vertically (<code>scale.y = 0.82</code>) and expands laterally (<code>scale.x = scale.z = 1.08</code>) before spring-damping back to normal in 180ms.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>High-Speed Sprinting (Shift):</strong> Holding <span class="key-cap">Shift</span> accelerates velocity from 140 to <strong>285 units/s</strong>, speeds up stride frequency by 85%, increases leg swing to <strong>42°</strong>, and introduces an athletic <strong>12° forward torso lean</strong>.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Dynamic Air Silhouette:</strong> While in mid-air, the legs naturally tuck backward (<code>-14°</code>) and the arms flare out (<code>±36°</code>) for balanced aerodynamic posture.</div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="step-code">
+              <div class="code-box">
+                <div class="code-box-header">
+                  <span class="code-title">JavaScript • Jump Physics & Sprinting Code</span>
+                  <button class="copy-btn" data-code="code-jump">Copy</button>
+                </div>
+                <pre><code id="code-jump"><span class="cmt">// 1. Jump Physics & Ground Check</span>
+<span class="kwd">if</span> (!isGrounded) {
+  jumpHeight += jumpVelocity * dt;
+  jumpVelocity -= <span class="num">720</span> * dt; <span class="cmt">// Gravity</span>
+
+  <span class="kwd">if</span> (jumpHeight &lt;= <span class="num">0</span>) {
+    jumpHeight = <span class="num">0</span>;
+    jumpVelocity = <span class="num">0</span>;
+    isGrounded = <span class="kwd">true</span>;
+    squashScale = <span class="num">0.82</span>; <span class="cmt">// Realistic landing squash!</span>
+  }
+}
+
+<span class="cmt">// 2. Volume-preserving Squash Spring Rebound</span>
+squashScale += (<span class="num">1.0</span> - squashScale) * <span class="num">0.22</span>;
+<span class="kwd">const</span> scaleXZ = <span class="num">1.0</span> + (<span class="num">1.0</span> - squashScale) * <span class="num">0.45</span>;
+
+<span class="cmt">// 3. Sprint Acceleration (Hold Shift)</span>
+<span class="kwd">const</span> speed = <span class="num">140</span> + (<span class="num">285</span> - <span class="num">140</span>) * runBlend;
+<span class="kwd">const</span> legSwing = Math.<span class="fun">sin</span>(walkPhase) * (<span class="num">26</span> + runBlend * <span class="num">16</span>);
+
+<span class="cmt">// 4. Apply transforms to Bear Character</span>
+spline.<span class="fun">updateObject</span>(bearId, {
+  position: { x: bearPosX, y: finalY, z: bearPosZ },
+  rotation: { x: forwardLean, y: facingAngle, z: roll },
+  scale: { x: scaleXZ, y: squashScale, z: scaleXZ }
+});</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 8: 3D Forest World & Camera -->
+        <div class="tab-content" id="tab-forest">
+          <div class="step-grid">
+            <div class="step-info">
+              <h3>Interactive 3D Forest, Collisions & Follow Camera</h3>
+              <p>The forest environment transforms the character showcase into an open, explorable game meadow with a winding path, foliage, physics collisions, and dynamic camera tracking.</p>
+              
+              <ul class="step-checklist">
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Lush 3D Forest Setting:</strong> A wide green terrain (<code>radius: 1150</code>), 7 curved sandy terracotta path segments, 6 tiered low-poly pine trees with wood trunks, 4 round bushes, 4 faceted boulders, and wild flower patches.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Smooth Chase Camera (Third-Person):</strong> The camera smoothly tracks the bear's $(X, Z)$ coordinate with an exponential lerp damping factor (<code>0.06</code>), keeping Barnaby framed at a pleasant elevated isometric angle without abrupt cuts.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Circle-Circle Obstacle Collision:</strong> Collision circles are defined around major trees (radius 48) and rocks (radius 42). If the bear comes within distance $D &lt; R_{\text{obs}} + R_{\text{bear}}$, an elastic pushout vector normalizes and displaces the position, allowing smooth sliding around obstacles.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Meadow Boundary Clamping:</strong> The character is constrained within the playable forest perimeter ($R \le 960$), preventing falling off into the void.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Environmental Micro-Animations:</strong> Three fluffy clouds continuously drift across the pastel sky with wrap-around boundaries, while the upper tiers of the pine trees gently sway in the breeze using a sinusoidal phase offset.</div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="step-code">
+              <div class="code-box">
+                <div class="code-box-header">
+                  <span class="code-title">JavaScript • Collision Pushout & Follow Camera</span>
+                  <button class="copy-btn" data-code="code-forest">Copy</button>
+                </div>
+                <pre><code id="code-forest"><span class="cmt">// 1. Tree & Rock Obstacle Collision Resolution</span>
+<span class="kwd">const</span> obstacles = [
+  { x: -<span class="num">260</span>, z: -<span class="num">190</span>, radius: <span class="num">48</span> }, <span class="cmt">// Tree 1</span>
+  { x:  <span class="num">290</span>, z: -<span class="num">210</span>, radius: <span class="num">48</span> }, <span class="cmt">// Tree 2</span>
+  { x: -<span class="num">150</span>, z:  <span class="num">190</span>, radius: <span class="num">42</span> }  <span class="cmt">// Rock 1</span>
+];
+
+obstacles.<span class="fun">forEach</span>(obs => {
+  <span class="kwd">const</span> dx = bearPosX - obs.x;
+  <span class="kwd">const</span> dz = bearPosZ - obs.z;
+  <span class="kwd">const</span> dist = Math.<span class="fun">sqrt</span>(dx * dx + dz * dz);
+  <span class="kwd">const</span> minDist = obs.radius + <span class="num">35</span>; <span class="cmt">// Bear collider radius</span>
+
+  <span class="kwd">if</span> (dist &lt; minDist &amp;&amp; dist &gt; <span class="num">0.001</span>) {
+    <span class="cmt">// Push out along collision normal (smooth slide)</span>
+    bearPosX = obs.x + (dx / dist) * minDist;
+    bearPosZ = obs.z + (dz / dist) * minDist;
+  }
+});
+
+<span class="cmt">// 2. Playable Meadow Perimeter Clamping</span>
+<span class="kwd">const</span> distFromCenter = Math.<span class="fun">sqrt</span>(bearPosX * bearPosX + bearPosZ * bearPosZ);
+<span class="kwd">if</span> (distFromCenter &gt; <span class="num">960</span>) {
+  bearPosX = (bearPosX / distFromCenter) * <span class="num">960</span>;
+  bearPosZ = (bearPosZ / distFromCenter) * <span class="num">960</span>;
+}
+
+<span class="cmt">// 3. Smooth Third-Person Chase Camera Follow</span>
+camX += (bearPosX - camX) * <span class="num">0.06</span>;
+camZ += ((bearPosZ + <span class="num">760</span>) - camZ) * <span class="num">0.06</span>;
+spline.<span class="fun">updateObject</span>(camId, {
+  position: { x: camX, y: <span class="num">360</span>, z: camZ }
+});
+
+<span class="cmt">// 4. Drifting Clouds & Swaying Tree Tops</span>
+cloud.<span class="fun">position</span>.x += <span class="num">18</span> * dt;
+<span class="kwd">if</span> (cloud.<span class="fun">position</span>.x &gt; <span class="num">950</span>) cloud.<span class="fun">position</span>.x = -<span class="num">950</span>;
+treeTier3.rotation.z = Math.<span class="fun">sin</span>(t * <span class="num">1.6</span> + offset) * <span class="num">0.035</span>;</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 9: Coins & Mission System -->
+        <div class="tab-content" id="tab-coins">
+          <div class="step-grid">
+            <div class="step-info">
+              <h3>Collectible Coins, Distance Collision & Mission Flow</h3>
+              <p>The coin collection system turns the forest into a fun mini-adventure. 10 golden coins are placed along the path, continuously spinning with procedural WebAudio chimes, live score tracking, and a victory celebration.</p>
+              
+              <ul class="step-checklist">
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>10 Golden 3D Coins:</strong> Built with golden physical cylinders (<code>radius: 14</code>, metallic: 0.85, roughness: 0.18) placed across key landmarks and path bends.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Smooth Spinning & Hovering:</strong> Each coin rotates on its axis at 120°/s while hovering up and down using a sinusoidal wave with a staggered phase offset.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Distance Collision Detection:</strong> A 2D distance check (<code>Math.hypot(dx, dz) &lt; 42</code>) registers when Barnaby reaches a coin, guaranteeing zero duplicate collections.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Pop & Shrink Collection Animation:</strong> Once touched, the coin plays a satisfying pop animation—rising 42 units upward, spinning rapidly, and scaling down before vanishing.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Procedural WebAudio Synthesis:</strong> Pure synthesized audio creates pleasant two-tone chimes (B5 → E6) for coins and a 4-note ascending fanfare (C5, E5, G5, C6) upon victory—zero external MP3 assets needed.</div>
+                </li>
+                <li>
+                  <span class="check-icon">✓</span>
+                  <div><strong>Mission & Victory State Machine:</strong> Tracks progress from <code>0/10</code> to <code>10/10</code> with a real-time progress bar. Upon collecting all 10 coins, an animated victory modal unlocks with a "Play Again" reset button.</div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="step-code">
+              <div class="code-box">
+                <div class="code-box-header">
+                  <span class="code-title">JavaScript • Coin Collision & WebAudio Synth</span>
+                  <button class="copy-btn" data-code="code-coins">Copy</button>
+                </div>
+                <pre><code id="code-coins"><span class="cmt">// 1. Distance Collision Check & Collection Pop</span>
+<span class="kwd">const</span> dx = bearPosX - coin.x;
+<span class="kwd">const</span> dz = bearPosZ - coin.z;
+<span class="kwd">const</span> dist = Math.<span class="fun">hypot</span>(dx, dz);
+
+<span class="kwd">if</span> (!coin.collected &amp;&amp; dist &lt; <span class="num">42</span>) {
+  coin.isCollecting = <span class="kwd">true</span>;
+  collectedCount++;
+  
+  <span class="cmt">// Synthesize two-tone chime (988Hz -> 1318Hz)</span>
+  <span class="fun">playCoinSound</span>();
+  
+  <span class="cmt">// Broadcast score update to Web HUD</span>
+  <span class="fun">broadcast</span>({
+    type: <span class="str">'coin-collected'</span>,
+    collectedCount: collectedCount,
+    totalCoins: <span class="num">10</span>
+  });
+
+  <span class="kwd">if</span> (collectedCount &gt;= <span class="num">10</span>) {
+    <span class="fun">playVictoryFanfare</span>();
+    <span class="fun">broadcast</span>({ type: <span class="str">'mission-complete'</span> });
+  }
+}
+
+<span class="cmt">// 2. Procedural WebAudio Two-Tone Chime</span>
+<span class="kwd">function</span> <span class="fun">playCoinSound</span>() {
+  <span class="kwd">const</span> t = audioCtx.currentTime;
+  <span class="kwd">const</span> osc = audioCtx.<span class="fun">createOscillator</span>();
+  <span class="kwd">const</span> gain = audioCtx.<span class="fun">createGain</span>();
+  osc.type = <span class="str">'triangle'</span>;
+  osc.frequency.<span class="fun">setValueAtTime</span>(<span class="num">987.77</span>, t);        <span class="cmt">// B5</span>
+  osc.frequency.<span class="fun">setValueAtTime</span>(<span class="num">1318.51</span>, t + <span class="num">0.08</span>); <span class="cmt">// E6</span>
+  gain.gain.<span class="fun">setValueAtTime</span>(<span class="num">0.22</span>, t);
+  gain.gain.<span class="fun">exponentialRampToValueAtTime</span>(<span class="num">0.001</span>, t + <span class="num">0.32</span>);
+  osc.<span class="fun">connect</span>(gain).<span class="fun">connect</span>(audioCtx.destination);
+  osc.<span class="fun">start</span>(t); osc.<span class="fun">stop</span>(t + <span class="num">0.34</span>);
+}</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Crafted with love for the Spline 3D pairing challenge • Built from scratch with Spline 3D, HTML5, CSS3 & JavaScript.</p>
+  </footer>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
